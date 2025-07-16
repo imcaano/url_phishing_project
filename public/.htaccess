@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /url_phishing_project/public/
+
+# If the requested file or directory exists, serve it directly
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Otherwise, route everything through index.php
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L] 

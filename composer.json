@@ -1,0 +1,7 @@
+{
+    "name": "url-phishing/project",
+    "description": "URL Phishing Detection Project",
+    "require": {
+        "phpoffice/phpspreadsheet": "1.29"
+    }
+}
