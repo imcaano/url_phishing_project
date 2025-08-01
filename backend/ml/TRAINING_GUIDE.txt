@@ -1,0 +1,242 @@
+================================================================================
+                    SIDA LO TRAIN GAREYO MODEL-KA PHISHING DETECTION
+================================================================================
+
+1. HORTAALKA (PREREQUISITES)
+================================================================================
+
+Waxaad u baahan tahay inaad install gareeyso:
+- Python 3.7 ama ka sareeya
+- pip (Python package manager)
+- Internet connection si aad u download gareeyso libraries-ka
+
+2. INSTALLATION
+================================================================================
+
+Step 1: Navigate to ML folder
+cd backend/ml
+
+Step 2: Install required libraries
+pip install pandas numpy scikit-learn joblib flask flask-cors
+
+Step 3: Verify installation
+python -c "import pandas, numpy, sklearn, joblib, flask; print('All libraries installed successfully')"
+
+3. DATASET STRUCTURE
+================================================================================
+
+Model-ka wuxuu isticmaalaa 2 datasets:
+
+a) safe.csv - URLs-ka ammaan ah
+   - Column: 'url' - URL-ka ammaan ah
+   - Label: 0 (safe)
+
+b) phishing.csv - URLs-ka phishing ah  
+   - Column: 'url' - URL-ka phishing ah
+   - Label: 1 (phishing)
+
+4. FEATURES-ka Model-ka
+================================================================================
+
+Model-ka wuxuu extract gareeyaa 12 features oo kala ah:
+
+1. url_length - Dhererka URL-ka
+2. domain_length - Dhererka domain-ka
+3. path_length - Dhererka path-ka
+4. dots_in_domain - Tirada dots-ka domain-ka ku jira
+5. contains_ip - Ma ku jira IP address (1 = haa, 0 = maya)
+6. contains_at - Ma ku jira @ symbol (1 = haa, 0 = maya)
+7. uses_https - Ma isticmaalaa HTTPS (1 = haa, 0 = maya)
+8. multiple_subdomains - Ma ku jira multiple subdomains (1 = haa, 0 = maya)
+9. contains_hex - Ma ku jira hexadecimal characters (1 = haa, 0 = maya)
+10. contains_numbers - Ma ku jira numbers (1 = haa, 0 = maya)
+11. contains_special_chars - Ma ku jira special characters (1 = haa, 0 = maya)
+12. contains_random_string - Ma ku jira random strings (1 = haa, 0 = maya)
+
+5. TRAINING PROCESS
+================================================================================
+
+Step 1: Run training script
+python train_model.py
+
+Step 2: Waxa uu sameeyo script-ka:
+   - Loads safe.csv iyo phishing.csv
+   - Extracts features from URLs
+   - Splits data: 80% training, 20% testing
+   - Trains Random Forest model (100 trees)
+   - Evaluates model performance
+   - Shows feature importance
+   - Saves model as 'phishing_model.joblib'
+
+6. MODEL PERFORMANCE
+================================================================================
+
+Waxaad aragi doontaa output sidan:
+
+Total URLs loaded: 50000
+Safe URLs: 25000
+Phishing URLs: 25000
+
+Extracting features from URLs...
+
+Training model...
+
+Model Performance:
+Training accuracy: 0.9650
+Testing accuracy: 0.9420
+
+Feature Importance:
+url_length: 0.1250
+domain_length: 0.0980
+contains_special_chars: 0.0950
+uses_https: 0.0920
+contains_at: 0.0880
+contains_ip: 0.0850
+multiple_subdomains: 0.0820
+dots_in_domain: 0.0780
+contains_random_string: 0.0750
+path_length: 0.0720
+contains_hex: 0.0680
+contains_numbers: 0.0420
+
+Model saved successfully as 'phishing_model.joblib'
+
+7. ALGORITHM DETAILS
+================================================================================
+
+Algorithm: Random Forest Classifier
+- Number of trees: 100
+- Random state: 42 (for reproducibility)
+- Test size: 20%
+- Features: 12 URL characteristics
+
+Random Forest wuxuu:
+- Combines multiple decision trees
+- Reduces overfitting
+- Provides feature importance
+- Handles both numerical and categorical data
+
+8. USING THE TRAINED MODEL
+================================================================================
+
+Step 1: Start Flask API service
+python app.py
+
+Step 2: Send prediction requests
+curl -X POST http://127.0.0.1:5000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+
+Response format:
+{
+  "is_phishing": false,
+  "confidence_score": 85.5,
+  "features": {
+    "url_length": 20,
+    "domain_length": 11,
+    "path_length": 0,
+    "dots_in_domain": 1,
+    "contains_ip": 0,
+    "contains_at": 0,
+    "uses_https": 1,
+    "multiple_subdomains": 0,
+    "contains_hex": 0,
+    "contains_numbers": 0,
+    "contains_special_chars": 0,
+    "contains_random_string": 0
+  }
+}
+
+9. INTEGRATION WITH PHP APPLICATION
+================================================================================
+
+PHP application-ka wuxuu isticmaalaa model-ka sidan:
+
+```php
+// In ScanController.php
+$url = $_POST['url'];
+$data = json_encode(['url' => $url]);
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, 'http://127.0.0.1:5000/predict');
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$response = curl_exec($ch);
+$result = json_decode($response, true);
+
+$is_phishing = $result['is_phishing'];
+$confidence = $result['confidence_score'];
+```
+
+10. CONFIDENCE SCORE INTERPRETATION
+================================================================================
+
+Confidence score wuxuu ka dhigayaa 0-100:
+
+0-30:   Very low confidence (uncertain prediction)
+31-50:  Low confidence (slightly suspicious)
+51-70:  Medium confidence (moderately suspicious)
+71-85:  High confidence (very suspicious)
+86-100: Very high confidence (highly likely phishing)
+
+11. TROUBLESHOOTING
+================================================================================
+
+Problem: "Module not found" error
+Solution: Install missing library with pip install [library_name]
+
+Problem: "File not found" error for CSV files
+Solution: Make sure safe.csv and phishing.csv are in the same directory
+
+Problem: Low accuracy
+Solution: 
+- Check dataset quality
+- Increase training data
+- Try different algorithms
+- Tune hyperparameters
+
+Problem: Flask service not starting
+Solution:
+- Check if port 5000 is available
+- Install flask and flask-cors
+- Check Python version compatibility
+
+12. MODEL RETRAINING
+================================================================================
+
+Si aad u retrain gareeyso model-ka:
+
+1. Update datasets (safe.csv, phishing.csv)
+2. Run: python train_model.py
+3. Restart Flask service: python app.py
+
+13. BEST PRACTICES
+================================================================================
+
+- Always backup trained model before retraining
+- Use balanced datasets (equal safe/phishing URLs)
+- Regularly update training data
+- Monitor model performance over time
+- Keep track of false positives/negatives
+- Document any changes to features or algorithms
+
+14. SECURITY CONSIDERATIONS
+================================================================================
+
+- Don't expose ML API to public internet
+- Validate input URLs before processing
+- Implement rate limiting
+- Log all prediction requests
+- Regularly update dependencies
+- Monitor for adversarial attacks
+
+================================================================================
+                    END OF TRAINING GUIDE
+================================================================================
+
+Tani waxay tahay sharaxaad dhammeystiran oo ku saabsan sida lo train gareeyo 
+model-ka phishing detection. Haddii aad caqliga u leedahay su'aalo, 
+fadlan la xiriir project maintainer-ka. 

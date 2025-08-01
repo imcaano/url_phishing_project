@@ -1,0 +1,97 @@
+============================
+URL Phishing Detection Project - How to Run
+============================
+
+This guide explains how to set up, install, and run the full project (PHP web + Python ML backend).
+
+----------------------------
+1. Requirements
+----------------------------
+- PHP 7.4+ (with PDO/MySQL)
+- MySQL or MariaDB
+- Python 3.8+
+- pip (Python package manager)
+- Composer (optional, if you use PHP dependencies)
+- XAMPP/WAMP/LAMP (for local dev, optional)
+
+----------------------------
+2. Database Setup
+----------------------------
+- Import the SQL file to create the database and tables:
+  1. Open phpMyAdmin or use the MySQL CLI.
+  2. Import: `database/url_phishing_db.sql`
+
+----------------------------
+3. Python ML Backend Setup
+----------------------------
+1. Open a terminal and navigate to the ML folder:
+   cd backend/ml
+
+2. (Optional but recommended) Create a virtual environment:
+   python -m venv venv
+   # Activate it:
+   # On Windows:
+   venv\Scripts\activate
+   # On Mac/Linux:
+   source venv/bin/activate
+
+3. Install required Python packages:
+   pip install -r requirements.txt
+
+4. Make sure you have the following files in backend/ml:
+   - safe.csv (legitimate URLs)
+   - phishing.csv (phishing URLs)
+   - model/pca_model.pkl (PCA model for feature extraction)
+
+5. Train the ML model (if not already trained):
+   python train_model.py
+   # This will create model/phishingdetection
+
+6. Start the Flask API server:
+   python predict.py
+   # The API will run at http://127.0.0.1:5000
+
+----------------------------
+4. PHP Web App Setup
+----------------------------
+1. Place the project in your web server's root (e.g., XAMPP's htdocs).
+2. Configure database connection in backend/config/Database.php if needed.
+3. Start Apache (and MySQL) via XAMPP/WAMP.
+4. Access the app in your browser:
+   http://localhost/url_phishing_project/public/
+
+----------------------------
+5. Usage
+----------------------------
+- Register/login as a user or admin.
+- Scan URLs from the scan page.
+- Admins can manage the blacklist, users cannot.
+- The system will call the Python API for phishing detection.
+
+----------------------------
+6. Troubleshooting
+----------------------------
+- If you see 'FileNotFoundError' for CSV/model files, check your paths and working directory.
+- If you get 'ModuleNotFoundError', run: pip install -r requirements.txt
+- If the scan page does not work, ensure the Python API is running and accessible.
+- For database errors, check your DB config and that all migrations are applied.
+
+----------------------------
+7. Example Test URLs
+----------------------------
+Phishing:
+- http://paypal.com-login-security-alert.com
+- http://update-appleid.com-login.verify-user.com
+- http://secure-chasebank-login.com
+- http://dropbox-file-share.com/download
+- http://microsoft-support-account-reset.com
+
+Legitimate:
+- https://www.google.com
+- https://www.github.com
+- https://www.wikipedia.org
+- https://www.apple.com
+- https://www.dropbox.com
+
+----------------------------
+For more help, check README.md or contact the project maintainer. 

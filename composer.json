@@ -1,0 +1,17 @@
+{
+    "name": "url-phishing/project",
+    "description": "URL Phishing Detection Project",
+    "require": {
+        "phpoffice/phpspreadsheet": "1.29",
+        "io-developer/php-whois": "^4.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "symfony/http-client": "^6.0",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "backend/"
+        }
+    }
+}
