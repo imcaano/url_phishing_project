@@ -330,6 +330,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                 <th>ML Status</th>
                                 <th>Confidence</th>
                                 <th>Auto-Blacklisted</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -360,7 +361,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                             <span class="text-muted">-</span>
                                         <?php endif; ?>
                                     </td>
-
+                                    <td>
+                                        <button class="btn btn-info btn-sm" onclick="viewDetails('<?php echo htmlspecialchars($result['domain']); ?>', <?php echo htmlspecialchars(json_encode($result)); ?>)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                         </tbody>

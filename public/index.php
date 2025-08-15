@@ -278,7 +278,9 @@ switch ($route) {
                 $domain = $_POST['domain'] ?? '';
                 if (!empty($domain)) {
                     $result = $import->restoreDomain($domain);
-                    if ($this->isAjaxRequest()) {
+                    
+                    // Check if this is an AJAX request
+                    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
                         header('Content-Type: application/json');
                         echo json_encode($result);
                         exit;

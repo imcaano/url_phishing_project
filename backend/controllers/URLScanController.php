@@ -42,8 +42,8 @@ class URLScanController {
                 
                 // Save scan result to database
                 $this->urlScan->saveScanResult($scanResult, $userId);
-                
-                return $scanResult;
+            
+            return $scanResult;
             } else {
                 // Return error from ML API
                 return $scanResult;

@@ -105,7 +105,7 @@ python app.py
 ```
 
 #### Start Web Server (Terminal 2)
-```bash
+   ```bash
 # XAMPP/WAMP should already be running
 # Access via browser: http://localhost/url_phishing_project/public/
 ```
@@ -119,7 +119,7 @@ python app.py
 ```
 
 #### Linux/Mac (Bash)
-```bash
+   ```bash
 chmod +x start_system.sh
 ./start_system.sh
 ```
@@ -141,7 +141,7 @@ chmod +x start_system.sh
 ## 🔍 Testing the System
 
 ### 1. Test ML API
-```bash
+   ```bash
 curl http://localhost:5000/health
 # Should return: {"status": "healthy", "model": "loaded"}
 ```

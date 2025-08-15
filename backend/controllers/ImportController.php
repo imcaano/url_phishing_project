@@ -173,13 +173,14 @@ class ImportController {
     }
 
     private function determineStatus($scanResult) {
-        if (isset($scanResult['status']) && $scanResult['status'] === 'not_found') {
-            return 'not_found';
-        }
-        
         // Check ML prediction first
         if (isset($scanResult['prediction'])) {
             return $scanResult['prediction'];
+        }
+        
+        // Check if there was an error
+        if (isset($scanResult['error'])) {
+            return 'error';
         }
         
         // Fallback to old R1 model
@@ -471,6 +472,7 @@ class ImportController {
             if (!$domain) return [];
             
             // Get WHOIS data using the existing R1 system
+            // Don't reject suspicious/phishing domains - they should still be scanned
             $scanResult = $this->urlScan->scanURL($url, null, false, true); // testMode = true to skip domain reachability check
             
             if ($scanResult && isset($scanResult['whois_info']) && !empty($scanResult['whois_info'])) {

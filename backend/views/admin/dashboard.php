@@ -236,7 +236,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     <i class="fas fa-ban"></i>
                     <h3>Blacklisted Domains</h3>
                     <p><?php echo $blacklistedDomains; ?></p>
-                </div>
+            </div>
                 <div class="stat-card ml-accuracy">
                     <i class="fas fa-robot"></i>
                     <h3>96.87%</h3>

@@ -85,54 +85,6 @@
             font-size: 1.1rem;
         }
 
-        /* Sidebar Profile Styles */
-        .sidebar-profile {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 1.5rem;
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .profile-avatar {
-            margin-bottom: 0.5rem;
-        }
-
-        .profile-avatar img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-name {
-            color: white;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            font-size: 0.9rem;
-        }
-
-        .profile-role {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.8rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            display: inline-block;
-        }
-
-        .profile-actions {
-            margin-top: 1rem;
-        }
-
-        .profile-actions .nav-link {
-            font-size: 0.85rem;
-            padding: 0.6rem 0.8rem;
-        }
-
         .main-content {
             margin-left: 250px;
             padding: 2rem;
@@ -512,27 +464,12 @@
             <a href="/url_phishing_project/public/admin/import" class="nav-link">
                 <i class="fas fa-file-import"></i> Import Domains
             </a>
-            
-            <!-- Profile Section -->
-            <div class="sidebar-profile mt-4">
-                <div class="profile-header">
-                    <div class="profile-avatar">
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['username'] ?? 'Admin'); ?>&background=4e73df&color=fff&size=60" alt="Profile Avatar">
-                    </div>
-                    <div class="profile-info">
-                        <h6 class="profile-name"><?php echo htmlspecialchars($_SESSION['username'] ?? 'Admin'); ?></h6>
-                        <span class="profile-role"><?php echo ucfirst($_SESSION['role'] ?? 'admin'); ?></span>
-                    </div>
-                </div>
-                <div class="profile-actions">
-                    <a href="/url_phishing_project/public/admin/profile" class="nav-link">
-                        <i class="fas fa-user-cog"></i> Profile Settings
-                    </a>
-                    <a href="/url_phishing_project/public/logout.php" class="nav-link">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </div>
-            </div>
+            <a href="/url_phishing_project/public/admin/profile" class="nav-link">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="/url_phishing_project/public/logout.php" class="nav-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
         </nav>
     </div>
 

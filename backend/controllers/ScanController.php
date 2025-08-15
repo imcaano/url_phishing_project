@@ -135,9 +135,11 @@ class ScanController {
             }
             
             // Use R1 system to check if domain is reachable and valid
+            // But don't reject phishing domains - they should be scanned
             $r1Validation = $this->urlScan->scanURL($url, null, false, true); // testMode = true for validation only
             
-            if (!$r1Validation || $r1Validation['status'] === 'not_found' || $r1Validation['status'] === 'error' || $r1Validation['status'] === 'suspicious') {
+            // Only reject if domain is completely unreachable (not found), not if it's suspicious/phishing
+            if (!$r1Validation || $r1Validation['status'] === 'not_found') {
                 $errorMessage = $r1Validation['error'] ?? 'Domain not found or unreachable. Please check the URL and try again.';
                 return [
                     'error' => $errorMessage,
@@ -145,7 +147,7 @@ class ScanController {
                 ];
             }
             
-            // Domain is valid and reachable, now call the ML API
+            // Domain is valid (even if suspicious/phishing), now call the ML API
             $apiUrl = 'http://localhost:5000/predict';
             $postData = json_encode(['url' => $url]);
             
@@ -241,37 +243,51 @@ class ScanController {
     private function autoAddToBlacklist($url) {
         try {
             $domain = parse_url($url, PHP_URL_HOST);
-            if (!$domain) return false;
+            if (!$domain) {
+                error_log("Auto-blacklist: Invalid domain from URL: $url");
+                return false;
+            }
             
-            // Call admin blacklist API to add domain
-            $apiUrl = 'http://localhost' . '/url_phishing_project/public/admin/blacklist';
-            $postData = http_build_query([
-                'action' => 'add',
-                'domain' => $domain,
-                'reason' => 'Auto-detected as phishing by ML model'
-            ]);
+            error_log("Auto-blacklist: Attempting to add domain '$domain' to blacklist");
             
-            $ch = curl_init($apiUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            // Check if domain is already blacklisted
+            $blacklist = new \App\Models\DomainBlacklist();
+            $existingDomain = $blacklist->getDomainByDomain($domain);
+            if ($existingDomain) {
+                error_log("Auto-blacklist: Domain '$domain' is already blacklisted");
+                return true; // Already blacklisted, consider it successful
+            }
             
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            error_log("Auto-blacklist: Domain '$domain' is not blacklisted, proceeding to add");
             
-            if ($httpCode === 200) {
-                error_log("Auto-added phishing domain to blacklist: " . $domain);
+            // Add domain to blacklist
+            $userId = $_SESSION['user_id'] ?? 1; // Default to admin user ID 1 if not set
+            $reason = 'Auto-detected as phishing by ML model';
+            
+            error_log("Auto-blacklist: Calling addDomain with domain='$domain', reason='$reason', userId=$userId");
+            
+            $result = $blacklist->addDomain($domain, $reason, $userId);
+            
+            error_log("Auto-blacklist: addDomain result: " . ($result ? 'true' : 'false'));
+            
+            if ($result) {
+                error_log("Auto-blacklist: Successfully added domain '$domain' to blacklist");
+                
+                // Update the scan result to show it was auto-blacklisted
+                if (isset($_SESSION['scan_result'])) {
+                    $_SESSION['scan_result']['auto_blacklisted'] = true;
+                    $_SESSION['scan_result']['blacklist_message'] = "Domain automatically added to blacklist as phishing.";
+                }
+                
                 return true;
             } else {
-                error_log("Failed to auto-add domain to blacklist: " . $domain . " - HTTP " . $httpCode);
+                error_log("Auto-blacklist: Failed to add domain '$domain' to blacklist");
                 return false;
             }
             
         } catch (\Exception $e) {
             error_log("Error auto-adding to blacklist: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return false;
         }
     }

@@ -29,33 +29,55 @@ class DomainBlacklist {
     
     public function addDomain($domain, $reason, $userId) {
         try {
+            error_log("DomainBlacklist::addDomain: Starting to add domain '$domain' with reason '$reason' and userId $userId");
+            
             // Check for duplicate first (before starting transaction)
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM domain_blacklist WHERE domain = ?");
             $stmt->execute([$domain]);
-            if ($stmt->fetchColumn() > 0) {
+            $existingCount = $stmt->fetchColumn();
+            error_log("DomainBlacklist::addDomain: Existing count for domain '$domain': $existingCount");
+            
+            if ($existingCount > 0) {
+                error_log("DomainBlacklist::addDomain: Domain '$domain' is already blacklisted, throwing exception");
                 throw new \Exception('Domain is already blacklisted.');
             }
             
+            error_log("DomainBlacklist::addDomain: Starting transaction");
             $this->db->beginTransaction();
             
             // First, add to domain_reports
+            error_log("DomainBlacklist::addDomain: Adding to domain_reports table");
             $stmt = $this->db->prepare(
                 "INSERT INTO domain_reports (domain, reported_by, reason) VALUES (?, ?, ?)"
             );
-            $stmt->execute([$domain, $userId, $reason]);
+            $reportResult = $stmt->execute([$domain, $userId, $reason]);
+            error_log("DomainBlacklist::addDomain: domain_reports insert result: " . ($reportResult ? 'true' : 'false'));
             
             // Add to blacklist
+            error_log("DomainBlacklist::addDomain: Adding to domain_blacklist table");
             $stmt = $this->db->prepare(
                 "INSERT INTO domain_blacklist (domain, reason, added_by) VALUES (?, ?, ?)"
             );
-            $stmt->execute([$domain, $reason, $userId]);
+            $blacklistResult = $stmt->execute([$domain, $reason, $userId]);
+            error_log("DomainBlacklist::addDomain: domain_blacklist insert result: " . ($blacklistResult ? 'true' : 'false'));
             
-            $this->db->commit();
-            return true;
+            if ($reportResult && $blacklistResult) {
+                error_log("DomainBlacklist::addDomain: Both inserts successful, committing transaction");
+                $this->db->commit();
+                error_log("DomainBlacklist::addDomain: Transaction committed successfully");
+                return true;
+            } else {
+                error_log("DomainBlacklist::addDomain: One or both inserts failed, rolling back transaction");
+                $this->db->rollBack();
+                return false;
+            }
+            
         } catch (\Exception $e) {
+            error_log("DomainBlacklist::addDomain: Exception occurred: " . $e->getMessage());
             // Only rollback if there's an active transaction
             if ($this->db->inTransaction()) {
-            $this->db->rollBack();
+                error_log("DomainBlacklist::addDomain: Rolling back transaction due to exception");
+                $this->db->rollBack();
             }
             throw $e;
         }

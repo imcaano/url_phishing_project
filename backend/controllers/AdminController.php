@@ -767,9 +767,11 @@ class AdminController {
             }
             
             // Use R1 system to check if domain is reachable and valid
+            // But don't reject phishing domains - they should be scanned
             $r1Validation = $this->urlScan->scanURL($url, null, false, true); // testMode = true for validation only
             
-            if (!$r1Validation || $r1Validation['status'] === 'not_found' || $r1Validation['status'] === 'error' || $r1Validation['status'] === 'suspicious') {
+            // Only reject if domain is completely unreachable (not found), not if it's suspicious/phishing
+            if (!$r1Validation || $r1Validation['status'] === 'not_found') {
                 $errorMessage = $r1Validation['error'] ?? 'Domain not found or unreachable. Please check the URL and try again.';
                 return [
                     'error' => $errorMessage,
@@ -777,7 +779,7 @@ class AdminController {
                 ];
             }
             
-            // Domain is valid and reachable, now call the ML API
+            // Domain is valid (even if suspicious/phishing), now call the ML API
             $apiUrl = 'http://localhost:5000/predict';
             $postData = json_encode(['url' => $url]);
             
