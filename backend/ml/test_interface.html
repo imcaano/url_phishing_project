@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detection ML Model Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .url-examples {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .url-examples h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .url-examples ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .url-examples li {
+            margin: 5px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Phishing Detection ML Model Test Interface</h1>
+        
+        <div class="url-examples">
+            <h4>📋 Test URL Examples:</h4>
+            <ul>
+                <li><strong>Safe URLs:</strong> https://www.google.com, https://www.github.com, https://www.wikipedia.org</li>
+                <li><strong>Phishing URLs:</strong> http://paypal.com-login-security-alert.com, http://update-appleid.com-login.verify-user.com</li>
+                <li><strong>Suspicious URLs:</strong> https://example-suspicious-site.tk, https://fake-login-site.xyz</li>
+            </ul>
+        </div>
+
+        <!-- Health Check Section -->
+        <div class="test-section">
+            <h3>🏥 API Health Check</h3>
+            <button onclick="checkHealth()">Check API Health</button>
+            <div id="healthResult" class="result"></div>
+        </div>
+
+        <!-- Single URL Prediction Section -->
+        <div class="test-section">
+            <h3>🔍 Single URL Prediction</h3>
+            <input type="text" id="singleUrl" placeholder="Enter URL to scan (e.g., https://www.google.com)" value="https://www.google.com">
+            <button onclick="predictSingle()">Predict Single URL</button>
+            <div id="singleResult" class="result"></div>
+        </div>
+
+        <!-- Batch URL Prediction Section -->
+        <div class="test-section">
+            <h3>📦 Batch URL Prediction</h3>
+            <textarea id="batchUrls" rows="4" placeholder="Enter URLs (one per line)&#10;https://www.google.com&#10;https://www.github.com&#10;https://example-suspicious-site.tk">https://www.google.com
+https://www.github.com
+https://example-suspicious-site.tk</textarea>
+            <button onclick="predictBatch()">Predict Batch URLs</button>
+            <div id="batchResult" class="result"></div>
+        </div>
+
+        <!-- Model Info Section -->
+        <div class="test-section">
+            <h3>📊 Model Information</h3>
+            <button onclick="getModelInfo()">Get Model Info</button>
+            <div id="modelResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                displayResult('healthResult', data, response.ok ? 'success' : 'error');
+            } catch (error) {
+                displayResult('healthResult', { error: error.message }, 'error');
+            }
+        }
+
+        async function predictSingle() {
+            const url = document.getElementById('singleUrl').value.trim();
+            if (!url) {
+                displayResult('singleResult', { error: 'Please enter a URL' }, 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                const data = await response.json();
+                displayResult('singleResult', data, response.ok ? 'success' : 'error');
+            } catch (error) {
+                displayResult('singleResult', { error: error.message }, 'error');
+            }
+        }
+
+        async function predictBatch() {
+            const urlsText = document.getElementById('batchUrls').value.trim();
+            if (!urlsText) {
+                displayResult('batchResult', { error: 'Please enter URLs' }, 'error');
+                return;
+            }
+
+            const urls = urlsText.split('\n').map(url => url.trim()).filter(url => url);
+            if (urls.length === 0) {
+                displayResult('batchResult', { error: 'No valid URLs found' }, 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/batch_predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ urls: urls })
+                });
+                const data = await response.json();
+                displayResult('batchResult', data, response.ok ? 'success' : 'error');
+            } catch (error) {
+                displayResult('batchResult', { error: error.message }, 'error');
+            }
+        }
+
+        async function getModelInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/model_info`);
+                const data = await response.json();
+                displayResult('modelResult', data, response.ok ? 'success' : 'error');
+            } catch (error) {
+                displayResult('modelResult', { error: error.message }, 'error');
+            }
+        }
+
+        function displayResult(elementId, data, type) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Auto-check health when page loads
+        window.onload = function() {
+            checkHealth();
+        };
+    </script>
+</body>
+</html>

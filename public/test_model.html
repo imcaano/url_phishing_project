@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Model Test - Phishing Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .result.safe {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .result.phishing {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .prediction {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .confidence {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .reason {
+            background-color: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .reason h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .url-examples {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .url-examples h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .url-examples ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .url-examples li {
+            margin: 5px 0;
+            font-family: monospace;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 ML Model Test - Phishing Detection</h1>
+        
+        <div class="url-examples">
+            <h4>📋 Test URL Examples:</h4>
+            <ul>
+                <li><strong>Safe URLs:</strong> https://www.google.com, https://www.github.com, https://www.wikipedia.org</li>
+                <li><strong>Phishing URLs:</strong> http://paypal.com-login-security-alert.com, http://update-appleid.com-login.verify-user.com</li>
+                <li><strong>Suspicious URLs:</strong> https://example-suspicious-site.tk, https://fake-login-site.xyz</li>
+            </ul>
+        </div>
+
+        <form id="scanForm">
+            <div class="form-group">
+                <label for="url">Enter URL to scan:</label>
+                <input type="text" id="url" name="url" placeholder="https://www.google.com" value="https://www.google.com" required>
+            </div>
+            <button type="submit">🔍 Scan URL with ML Model</button>
+        </form>
+
+        <div id="loading" class="loading" style="display: none;">
+            Scanning URL... Please wait...
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('scanForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value.trim();
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').innerHTML = '';
+            
+            try {
+                // Test with GET method first
+                const response = await fetch(`http://localhost:5000/predict?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                
+                displayResult(data);
+                
+            } catch (error) {
+                // If GET fails, try POST method
+                try {
+                    const response = await fetch('http://localhost:5000/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ url: url })
+                    });
+                    const data = await response.json();
+                    displayResult(data);
+                } catch (postError) {
+                    document.getElementById('result').innerHTML = `
+                        <div class="error">
+                            <strong>Error:</strong> Could not connect to ML API. Please ensure the API is running on http://localhost:5000
+                        </div>
+                    `;
+                }
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            
+            if (data.error || data.status === 'error') {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${data.error || 'Unknown error occurred'}
+                    </div>
+                `;
+                return;
+            }
+            
+            const isPhishing = data.prediction === 'phishing';
+            const resultClass = isPhishing ? 'phishing' : 'safe';
+            const predictionText = isPhishing ? '🚨 PHISHING DETECTED' : '✅ SAFE';
+            
+            let reasonHtml = '';
+            if (data.expert_analysis) {
+                const analysis = data.expert_analysis;
+                reasonHtml = `
+                    <div class="reason">
+                        <h4>🧠 Expert Analysis:</h4>
+                        <p><strong>Summary:</strong> ${analysis.summary || 'No summary available'}</p>
+                        
+                        ${analysis.risk_factors && analysis.risk_factors.length > 0 ? `
+                            <p><strong>Risk Factors:</strong></p>
+                            <ul>
+                                ${analysis.risk_factors.map(factor => `<li>${factor}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                        
+                        ${analysis.security_features && analysis.security_features.length > 0 ? `
+                            <p><strong>Security Features:</strong></p>
+                            <ul>
+                                ${analysis.security_features.map(feature => `<li>${feature}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                        
+                        ${analysis.recommendations && analysis.recommendations.length > 0 ? `
+                            <p><strong>Recommendations:</strong></p>
+                            <ul>
+                                ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="result ${resultClass}">
+                    <div class="prediction">${predictionText}</div>
+                    <div class="confidence">Confidence: <strong>${data.confidence_score}%</strong></div>
+                    ${data.risk_level ? `<div>Risk Level: <strong>${data.risk_level}</strong></div>` : ''}
+                    ${reasonHtml}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

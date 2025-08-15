@@ -1,0 +1,17 @@
+{
+  "api": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "debug": false,
+    "threaded": true
+  },
+  "model": {
+    "path": "phishing_model.joblib",
+    "timeout": 30,
+    "max_retries": 3
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "api.log"
+  }
+}

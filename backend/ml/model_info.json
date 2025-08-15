@@ -1,0 +1,19 @@
+{
+  "accuracy": 0.9687317445072626,
+  "precision": 0.9160712381358643,
+  "recall": 0.7836876197427242,
+  "f1_score": 0.8447241616678139,
+  "confusion_matrix": [
+    [
+      89249,
+      787
+    ],
+    [
+      2371,
+      8590
+    ]
+  ],
+  "training_date": "2025-08-14T13:56:48.588107",
+  "model_type": "GradientBoostingClassifier",
+  "feature_count": 20
+}
